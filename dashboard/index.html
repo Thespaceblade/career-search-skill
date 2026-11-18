@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Career Search Dashboard</title>
+<link rel="stylesheet" href="/dashboard.css">
+<script defer src="/chart.js"></script>
+<script defer src="/workspace.js"></script>
+<script defer src="/dashboard.js"></script>
+</head>
+<body>
+
+<div class="app-header-row">
+  <div>
+    <h1>Career Search Dashboard</h1>
+    <div class="sub"></div>
+  </div>
+  <span id="notice" role="status"></span>
+  <button class="add-job-btn" id="addJobBtn" style="margin-right:8px;" onclick="openAddJobModal()" title="Add a job">&#43; Add job</button>
+  <button class="settings-gear-btn" id="settingsGearBtn" onclick="openSettingsModal()" title="Settings">&#9881;</button>
+</div>
+
+<div class="page-nav">
+  <button class="page-tab active" data-page="jobsearch" onclick="switchPage('jobsearch')">Job search</button>
+  <button class="page-tab" data-page="networking" onclick="switchPage('networking')">Networking</button>
+  <button class="page-tab" data-page="analytics" onclick="switchPage('analytics')">Analytics</button>
+  <button class="page-tab" data-page="sharedbrain" onclick="switchPage('sharedbrain')">Workspace</button>
+</div>
+
+<div id="page-jobsearch" class="page-view">
+
+<div class="view-tabs">
+  <button class="view-tab active" data-view="overview" onclick="switchView('overview')">Overview</button>
+  <button class="view-tab" data-view="board" onclick="switchView('board')">Board</button>
+  <button class="view-tab" data-view="list" onclick="switchView('list')">List</button>
+  <button class="view-tab" data-view="flow" onclick="switchView('flow')">Flow Chart</button>
+</div>
+
+<div id="viewOverview">
+<div class="panel">
+  <button class="panel-btn" onclick="openPage('all')">
+    <div class="num" id="btn-num-all">0</div>
+    <div class="label">All jobs</div>
+  </button>
+  <button class="panel-btn ready" onclick="openPage('not_applied')">
+    <div class="num" id="btn-num-not_applied">0</div>
+    <div class="label">Not applied</div>
+  </button>
+  <button class="panel-btn urgent badge" id="urgentBtn" data-badge="0" onclick="openPage('urgent')">
+    <div class="num" id="btn-num-urgent">0</div>
+    <div class="label">Urgent</div>
+  </button>
+  <button class="panel-btn" onclick="openPage('submitted')">
+    <div class="num" id="btn-num-submitted">0</div>
+    <div class="label">Submitted</div>
+  </button>
+</div>
+
+<div class="section">
+  <h2>Application pipeline</h2>
+  <div class="chart-wrap"><canvas id="pipelineChart"></canvas></div>
+</div>
+
+<div class="section">
+  <h2>&#9888; Outstanding tasks</h2>
+  <div class="source-chips" style="margin-bottom:10px;">
+    <button class="chip-btn" id="outChip-app" onclick="filterOutstanding('app')">Application actions <span id="outCount-app"></span></button>
+    <button class="chip-btn" id="outChip-interview" onclick="filterOutstanding('interview')">Interviews <span id="outCount-interview"></span></button>
+    <button class="chip-btn" id="outChip-waas" onclick="filterOutstanding('waas')">WAAS to submit <span id="outCount-waas"></span></button>
+  </div>
+    <table id="outstandingTable">
+    <tr><th>Company</th><th>Role</th><th>What's needed</th></tr>
+
+
+
+  </table>
+  <div class="footer-note"></div>
+</div>
+
+<div class="section">
+  <h2>WAAS backlog <span style="font-weight:400;color:#888;font-size:12px;">(prepared jobs)</span></h2>
+    <table id="startupBacklog">
+    <tr><th>Company</th><th>Role</th><th>Status</th></tr>
+
+  </table>
+  <div class="footer-note"></div>
+</div>
+
+<div class="section">
+  <h2>Recent submitted / in-progress applications</h2>
+    <table id="recentJobs">
+    <tr><th>Company</th><th>Role</th><th>Status</th></tr>
+
+  </table>
+  <div class="footer-note"></div>
+</div>
+</div>
+
+<!-- Application views -->
+<div id="viewBoard" style="display:none">
+  <input class="list-search" id="boardSearch" placeholder="Search for roles or companies" oninput="boardSearchTerm=this.value;renderBoard();">
+  <div class="board-wrap" id="boardWrap"></div>
+</div>
+<div id="viewList" style="display:none">
+  <input class="list-search" id="listSearch" placeholder="Search for roles or companies" oninput="listSearchTerm=this.value;renderList();">
+  <div class="page-count" id="listCount" style="margin-bottom:10px; color:#6b6b6b; font-size:13px;"></div>
+  <div id="listRows"></div>
+</div>
+<div id="viewFlow" style="display:none">
+  <div class="insight-row" id="insightCards"></div>
+  <div class="section flow-section">
+    <div class="flow-heading">
+      <div>
+        <h2>Application flow</h2>
+        <div class="flow-kicker">Application stages and outcomes</div>
+      </div>
+      <button class="flow-reset" type="button" onclick="resetSankeyLayout()">Reset layout</button>
+    </div>
+    <div class="sankey-wrap">
+      <svg id="sankeySvg" width="100%" height="620" aria-label="Interactive application flow chart"></svg>
+      <div id="sankeyTooltip"></div>
+    </div>
+    <div class="footer-note">Drag any bar to reshape &middot; Hover ribbons for counts &middot; Layout saves automatically &middot; Waiting, Offer, and Rejected share one end column</div>
+  </div>
+</div>
+
+<!-- Full-page overlay for the 4 panel buttons -->
+<div class="page-overlay" id="pageOverlay">
+  <div class="page-header">
+    <button class="back-btn" onclick="closePage()">&#8592; Back</button>
+    <span class="page-title" id="pageTitle"></span>
+    <span class="page-count" id="pageCount"></span>
+  </div>
+  <div class="source-chips" id="sourceChips"></div>
+  <div class="source-chips" id="atsChips"></div>
+  <div class="term-chips" id="termChips"></div>
+  <div class="term-chips" id="tailorChips"></div>
+  <div class="term-chips" id="sortChips"></div>
+  <span class="manage-bar" id="manageBar" onclick="toggleManagePanel()"></span>
+  <div class="manage-panel" id="managePanel" style="display:none;"></div>
+  <div class="job-list" id="jobList"></div>
+  <div class="empty" id="pageEmpty" style="display:none;"></div>
+</div>
+
+</div>
+
+<div id="page-networking" class="page-view" style="display:none">
+
+<div class="networking-shell">
+  <div class="networking-masthead">
+    <div>
+      <span class="eyebrow"></span>
+      <h2>Referral desk</h2>
+      <p>Find the company, remember the person, verify how its referral works, and know whether to ask before or after applying.</p>
+    </div>
+    <div class="networking-rule-card">
+      <strong>Application-order guardrail</strong>
+      <span>Code or employee submission: ask first.</span>
+      <span>Attachable or internal forward: apply, then ask.</span>
+      <span>Unknown: verify first unless the role is urgent.</span>
+    </div>
+  </div>
+
+  <div class="network-subnav" role="tablist" aria-label="Networking workspace">
+    <button class="network-subtab active" id="networkTab-linkedin" onclick="switchNetworkSubpage('linkedin')">LinkedIn cold DMs</button>
+    <button class="network-subtab" id="networkTab-email" onclick="switchNetworkSubpage('email')">Recruiter emails</button>
+  </div>
+
+  <button class="copy-btn" type="button" onclick="openContact()">Add contact</button>
+  <div id="networkSubpage-linkedin" class="network-subpage">
+    <div class="referral-toolbar">
+      <div>
+        <span class="eyebrow"></span>
+        <strong>Who can help at this company?</strong>
+        <small>Conversation, meeting, and referral are tracked independently because real relationships do not move in a straight line.</small>
+      </div>
+      <input id="referralCompanySearch" class="network-search" type="search" placeholder="Search company or person" oninput="filterReferralDesk()">
+    </div>
+    <div class="referral-filter-row">
+      <button class="chip-btn active" data-ref-filter="all" onclick="setReferralFilter('all')">All</button>
+      <button class="chip-btn" data-ref-filter="acquired" onclick="setReferralFilter('acquired')">Referral acquired</button>
+      <button class="chip-btn" data-ref-filter="offered" onclick="setReferralFilter('offered')">Offered / ask-ready</button>
+      <button class="chip-btn" data-ref-filter="meeting" onclick="setReferralFilter('meeting')">Meeting stage</button>
+      <button class="chip-btn" data-ref-filter="active" onclick="setReferralFilter('active')">Active conversation</button>
+      <button class="chip-btn" data-ref-filter="connected" onclick="setReferralFilter('connected')">Connected</button>
+      <button class="chip-btn" data-ref-filter="pending" onclick="setReferralFilter('pending')">Pending</button>
+      <button class="chip-btn" data-ref-filter="unreached" onclick="setReferralFilter('unreached')">Unreached</button>
+    </div>
+    <p id="networkCount"></p>
+    <div id="referralCompanyGrid" class="referral-company-grid">
+
+    </div>
+
+    <div class="section conversation-queue-section">
+      <div class="section-heading-row">
+        <div><span class="eyebrow"></span><h2>LinkedIn conversation queue</h2></div>
+        <p>Suggested replies and referral asks are drafts only. Opening this page never sends anything.</p>
+      </div>
+      <div class="chip-row">
+        <button class="chip-btn active" id="liChip-all" onclick="filterLinkedinInbox('all')">All</button>
+        <button class="chip-btn" id="liChip-reply" onclick="filterLinkedinInbox('reply')">Needs reply</button>
+        <button class="chip-btn" id="liChip-waiting" onclick="filterLinkedinInbox('waiting')">Waiting</button>
+        <button class="chip-btn" id="liChip-followup" onclick="filterLinkedinInbox('followup')">Follow-up due</button>
+        <button class="chip-btn" id="liChip-referral" onclick="filterLinkedinInbox('referral')">Referral ready</button>
+        <button class="chip-btn" id="liChip-check" onclick="filterLinkedinInbox('check')">Needs verification</button>
+      </div>
+      <div class="conversation-table-wrap">
+        <table id="linkedinConversationTable">
+          <tr><th>Contact</th><th>Thread now</th><th>Status</th><th>Suggested draft</th><th>Timing / next step</th></tr>
+
+        </table>
+      </div>
+      <div class="footer-note"></div>
+    </div>
+  </div>
+
+  <div id="networkSubpage-email" class="network-subpage" style="display:none">
+    <div class="referral-toolbar email-toolbar">
+      <div>
+        <span class="eyebrow">Outreach tracker</span>
+        <strong>Recruiter email relationships</strong>
+        <small>Grouped by company and follow-up status.</small>
+      </div>
+      <input id="recruiterEmailSearch" class="network-search" type="search" placeholder="Search recruiter or company" oninput="filterRecruiterEmails()">
+    </div>
+    <div class="recruiter-filter-row">
+      <button class="chip-btn active" data-email-filter="all" onclick="setRecruiterFilter('all')">All</button>
+      <button class="chip-btn" data-email-filter="resume_forwarded" onclick="setRecruiterFilter('resume_forwarded')">Resume forwarded</button>
+      <button class="chip-btn" data-email-filter="replied" onclick="setRecruiterFilter('replied')">Replied</button>
+      <button class="chip-btn" data-email-filter="follow_up_due" onclick="setRecruiterFilter('follow_up_due')">Follow-up due</button>
+      <button class="chip-btn" data-email-filter="sent" onclick="setRecruiterFilter('sent')">Awaiting</button>
+      <button class="chip-btn" data-email-filter="closed" onclick="setRecruiterFilter('closed')">Closed</button>
+      <button class="chip-btn" data-email-filter="bounced" onclick="setRecruiterFilter('bounced')">Bounced</button>
+    </div>
+    <div class="network-summary-line"></div>
+    <div class="chart-wrap"><canvas id="outreachChart"></canvas></div>
+    <div id="recruiterEmailGrid" class="recruiter-company-grid">
+
+    </div>
+  </div>
+</div>
+
+</div>
+<div id="page-analytics" class="page-view" style="display:none">
+
+<div class="section">
+  <h2>Applications over time</h2>
+  <div class="footer-note" style="margin-bottom:10px;"></div>
+  <div class="chart-wrap"><canvas id="analyticsWeeklyChart"></canvas></div>
+</div>
+
+<div class="section">
+  <h2>When postings show up</h2>
+  <div class="footer-note" style="margin-bottom:10px;">Based on the date each posting was logged by this pipeline &mdash; a proxy for when it first appeared, not always the employer's literal post date (most sources don't retain that once captured).</div>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;">
+    <div class="chart-wrap" style="flex:1;min-width:280px;">
+      <div style="font-weight:600;margin-bottom:6px;">By month</div>
+      <canvas id="analyticsMonthChart"></canvas>
+    </div>
+    <div class="chart-wrap" style="flex:1;min-width:280px;">
+      <div style="font-weight:600;margin-bottom:6px;">By day of week</div>
+      <canvas id="analyticsDowChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h2>Postings by company</h2>
+  <div style="max-height:420px;overflow:auto;">
+    <table>
+      <tr><th>Company</th><th>Postings tracked</th><th>Applied</th></tr>
+      <tbody id="companyRows"></tbody>
+    </table>
+  </div>
+  <div class="footer-note">Top 20 companies by number of distinct postings/reqs logged on the checklist.</div>
+</div>
+
+</div>
+
+<div class="detail-backdrop" id="addJobBackdrop" onclick="closeAddJobBackdrop(event)">
+  <div class="detail-modal" id="addJobModal" onclick="event.stopPropagation()">
+    <button class="detail-close" onclick="closeAddJobModal()">&#10005;</button>
+    <div class="detail-company" id="jobFormTitle">Add a job</div>
+    <form id="addJobForm" onsubmit="submitAddJob(event)">
+      <div id="addJobError" style="color:#a3312e;font-size:12.5px;margin-bottom:6px;"></div>
+      <input id="addJobCompany" type="text" placeholder="Company *" required
+        style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;">
+      <input id="addJobRole" type="text" placeholder="Role *" required
+        style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;">
+      <input id="addJobLocation" type="text" placeholder="Location"
+        style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;">
+      <input id="addJobLink" type="text" placeholder="Posting link (optional)"
+        style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;">
+      <select id="addJobStatus"
+        style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;">
+        <option value="not_applied">Not yet applied</option>
+        <option value="submitted">Submitted</option>
+        <option value="screen">Screen</option>
+        <option value="assessment">Assessment</option>
+        <option value="interview">Interview</option>
+        <option value="action_required">Action required</option>
+        <option value="offer">Offer</option>
+        <option value="rejected">Rejected</option>
+      </select>
+      <textarea id="addJobNote" placeholder="Note (optional)" rows="3"
+        style="width:100%;box-sizing:border-box;margin-bottom:10px;padding:8px 10px;border:1px solid #e7e5e0;border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;"></textarea>
+      <div class="form-grid">
+        <label>Term <input id="jobTerm" placeholder="Fall 2030"></label>
+        <label>Cycle <input id="jobCycle" placeholder="Fall 2030"></label>
+        <label>Pay from posting <input id="jobPay" placeholder="$25/hr"></label>
+        <label>Next action <input id="jobAction"></label>
+        <label>Resume path in workspace <input id="jobResume" placeholder="packages/role/resume.pdf"></label>
+        <label>Deadline <input type="date" id="jobDeadline"></label>
+        <label><input type="checkbox" id="jobUrgent"> Urgent</label>
+      </div>
+      <button id="addJobSubmitBtn" type="submit" class="copy-btn">Add job</button>
+    </form>
+  </div>
+</div>
+
+<div class="detail-backdrop" id="detailBackdrop" onclick="closeDetailBackdrop(event)">
+  <div class="detail-modal" id="detailModal" role="dialog" aria-label="Job details"></div>
+</div>
+
+<section id="page-sharedbrain" class="page-view" style="display:none">
+  <div class="section">
+    <h2>Set up your workspace</h2>
+    <p>Add a resume to <code>workspace/resume/</code>, then ask your agent to <strong>use the career-search skill to set up my profile from my resume</strong>.</p>
+    <p id="resumeCount" aria-live="polite"></p>
+    <form id="profileForm">
+      <div class="form-grid">
+        <label>Name <input name="name"></label>
+        <label>Target roles <input name="roles"></label>
+        <label>Locations <input name="locations"></label>
+        <label>Preferred work arrangement <input name="arrangement"></label>
+        <label>Graduation month, if relevant <input name="graduation" type="month"></label>
+        <label>Availability <input name="availability"></label>
+        <label>Authorization or sponsorship preferences <input name="authorization"></label>
+        <label>Compensation preferences <input name="compensation"></label>
+        <label>Other constraints <input name="constraints"></label>
+      </div>
+      <button class="copy-btn" type="submit">Save profile</button>
+      <span id="profileStatus" role="status"></span>
+    </form>
+  </div>
+  <div class="section">
+    <h2>Job sources</h2>
+    <p>Configure public feeds or private imports in <code>workspace/sources.json</code>. Run <code>python3 scripts/sources.py</code> to gather candidates for review.</p>
+    <ul id="sourceList"></ul>
+    <p id="discoverySummary"></p>
+  </div>
+  <div class="section">
+    <h2>Shared activity</h2>
+    <table><thead><tr><th>When</th><th>Scope</th><th>Change</th></tr></thead><tbody id="activityRows"></tbody></table>
+  </div>
+</section>
+<div class="detail-backdrop" id="contactBackdrop" onclick="if(event.target===this)closeContact()">
+  <div class="detail-modal" role="dialog" aria-labelledby="contactTitle">
+    <button class="detail-close" onclick="closeContact()" aria-label="Close">&#10005;</button>
+    <div class="detail-company" id="contactTitle">Networking contact</div>
+    <form id="contactForm">
+      <div class="form-grid">
+        <label>Company <input name="company" required></label>
+        <label>Contact <input name="name" required></label>
+        <label>Channel <select name="channel"><option value="linkedin">LinkedIn</option><option value="email">Email</option></select></label>
+        <label>Status <select name="state">
+          <option value="unreached">Unreached</option><option value="pending">Pending</option>
+          <option value="connected">Connected</option><option value="active">Active conversation</option>
+          <option value="meeting">Meeting</option><option value="offered">Referral offered</option>
+          <option value="acquired">Referral acquired</option><option value="reply">Needs reply</option>
+          <option value="sent">Waiting</option><option value="follow_up_due">Follow-up due</option>
+          <option value="resume_forwarded">Resume forwarded</option><option value="replied">Replied</option>
+          <option value="bounced">Bounced</option><option value="closed">Closed</option>
+          <option value="check">Needs verification</option>
+        </select></label>
+        <label>Conversation <input name="conversation"></label>
+        <label>Meeting <input name="meeting"></label>
+        <label>Referral <input name="referral"></label>
+        <label>Referral mechanism <input name="mechanism"></label>
+        <label>Next check <input type="date" name="due"></label>
+        <label>Thread or profile link <input type="url" name="url"></label>
+        <label>Notes <textarea name="notes" rows="3"></textarea></label>
+        <label>Draft for review <textarea name="draft" rows="3"></textarea></label>
+      </div>
+      <button class="copy-btn" type="submit">Save contact</button> <span id="contactStatus" role="status"></span>
+    </form>
+  </div>
+</div>
+
+</body>
+</html>

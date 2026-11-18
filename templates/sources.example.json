@@ -1,0 +1,11 @@
+[
+  {"kind": "greenhouse", "company": "Example employer", "board": "board-slug"},
+  {"kind": "lever", "company": "Example employer", "board": "board-slug"},
+  {"kind": "ashby", "company": "Example employer", "board": "board-slug"},
+  {"kind": "smartrecruiters", "company": "Example employer", "board": "board-slug"},
+  {"kind": "workday", "company": "Example employer", "host": "example.wd1.myworkdayjobs.com", "tenant": "example", "site": "Careers", "query": "intern"},
+  {"kind": "simplify", "url": "https://raw.githubusercontent.com/SimplifyJobs/Summer2026-Internships/dev/.github/scripts/listings.json"},
+  {"kind": "csv", "path": "school-opportunities.csv", "label": "School board"},
+  {"kind": "xlsx", "path": "school-opportunities.xlsx", "label": "School board", "sheet": "Jobs", "header_row": 1},
+  {"kind": "json", "path": "startup-jobs.json", "label": "yc"}
+]

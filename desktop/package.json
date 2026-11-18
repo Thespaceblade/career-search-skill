@@ -1,0 +1,9 @@
+{
+  "name": "career-search-dashboard",
+  "version": "1.0.0",
+  "description": "Desktop window for the local Career Search dashboard",
+  "private": true,
+  "main": "main.cjs",
+  "scripts": {"start": "electron ."},
+  "devDependencies": {"electron": "45.3.4"}
+}

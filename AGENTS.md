@@ -1,0 +1,1 @@
+Use `.agents/skills/career-search/SKILL.md` for career workflows. Treat `workspace/` as private and excluded from Git. Before tailoring, read the profile, experience bank, project bank and tag taxonomy. Preserve application status across deduplication and distinguish a drafted application from a confirmed submission. Run `python3 scripts/setup.py` if the workspace does not exist.

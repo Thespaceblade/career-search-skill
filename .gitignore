@@ -1,0 +1,12 @@
+workspace/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+.env.*
+node_modules/
+*.zip
+*.pem
+*.key
+*.local
+*.log

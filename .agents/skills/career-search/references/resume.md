@@ -1,0 +1,14 @@
+# Resume tailoring and hypertailoring
+
+Read the profile, tag taxonomy, both evidence banks and full posting before drafting. Use the target team's terms when they describe facts the candidate can support. Select the strongest relevant experience and projects, then widen the evidence rather than repeating the same theme. Follow pins only when the candidate set them. Preserve official dates, titles, levels of contribution, skill depth and distinction between course, volunteer and paid work.
+
+## Hypertailor checklist
+
+1. Verify the role and the apply link. Screen hard blockers and check requisition, cycle, and aliases against the tracker. If the posting can't be read, ask for the job description instead of guessing.
+2. Map job requirements and ATS terms to real projects, experience and skills. Put the highest-fit supported evidence first. Use XYZ bullets: delivered X, measured by Y, using Z. In strict mode, quantify every bullet from the banks, including each retained role/project. If a useful number is missing, get confirmation or select another supported bullet. Lower confidence or flag the missing evidence rather than inventing it.
+3. Use a plain, searchable PDF with standard sections and no columns, badges or graphics. For a one-page resume, use enough relevant evidence to fill the page. Aim for a bottom whitespace band below roughly 8% when enough evidence exists. Fill with the next best confirmed project, role or bullet. Keep spacing comfortable and use the user's requested length rather than forcing a one-page rule for all candidates.
+4. Render and visually inspect the PDF. Check dates, links, extracted text order, clean glyphs, page count, truthful numbers, and coverage of major requirements. Use `python3 scripts/validate_resume.py PATH` with Poppler. It can compile trusted TeX sources with pdfLaTeX. `--strict` checks numeric tokens for TeX and cannot verify whether the number is true, so validate against bank evidence manually.
+5. Save the posting, source and PDF together under the job's private package directory. `python3 scripts/package_job.py JOB.json POSTING.md RESUME.tex --strict` builds and links the package. Accepts PDF in place of TeX and `--extra` for related documents. Use `--existing ID` to attach to an existing job without changing its status. Add a new eligible role as `NOT SUBMITTED`. Open the dashboard and confirm the package path and status.
+6. Report the artifacts and any missing facts or tooling that prevented validation. Offer a private backup if the user wants one.
+
+Start with `templates/resume.tex` or the user's ATS-friendly source file. Reusable role-family variants can live under `workspace/resume/`. Keep the evidence banks current when the candidate provides new facts. A strong application package can also include a cover letter and short answers tailored to the posting.
